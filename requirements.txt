@@ -3,6 +3,5 @@ streamlit
 pandas
 matplotlib
 japanize_matplotlib
-json==2.0.9
 requests
 tqdm
