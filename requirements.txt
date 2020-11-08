@@ -3,3 +3,6 @@ streamlit
 pandas
 matplotlib
 japanize_matplotlib
+json
+requests
+tqdm
