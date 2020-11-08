@@ -76,7 +76,7 @@ def main():
             df_static = pd.DataFrame(list(df['videoId'].apply(lambda x : get_statistics(x))))
             df_output = pd.concat([df,df_static], axis = 1)
             df_output.to_csv("./youtube.csv")
-            yt = YTstats(API_KEY, channel_id)
+            yt = YTstats(YOUTUBE_API_KEY, channel_id)
             yt.extract_all()
             yt.dump()  # dumps to .json
             st.dataframe(df_output)
