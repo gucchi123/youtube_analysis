@@ -1,3 +1,5 @@
+#動画をアップロード順にする
+
 #AIzaSyCj27PN_MW2zNJmp8INqfxbGDGNTRvpU9U
 #AIzaSyCWnkA7oJOoN3_MLvcrKxfEIZRVS_js3EU
 import streamlit as st
@@ -8,6 +10,10 @@ import json
 from matplotlib import pyplot as plt
 import japanize_matplotlib
 from matplotlib import cm
+
+#ToDo requirements.txtに入れる
+from janome.tokenizer import Tokenizer
+from wordcloud import WordCloud
 
 from youtube_statistics import YTstats
 
@@ -62,6 +68,35 @@ def get_statistics(id):
     statistics = youtube.videos().list(part = 'statistics', id = id).execute()['items'][0]['statistics']
     return statistics
 
+
+def get_nouns(sentence, noun_list):
+    t = Tokenizer()
+    for token in t.tokenize(sentence):
+        split_token = token.part_of_speech.split(',')
+        ## 一般名詞を抽出
+        if split_token[0] == '名詞' and split_token[1] == '一般':
+            noun_list.append(token.surface)
+
+def depict_word_cloud(noun_list):
+    ## 名詞リストの要素を空白区切りにする(word_cloudの仕様)
+    noun_space = ' '.join(map(str, noun_list))
+    ## word cloudの設定(フォントの設定)
+    wc = WordCloud(background_color="white", font_path=r"C:/WINDOWS/Fonts/msgothic.ttc", width=300,height=300)
+    wc.generate(noun_space)
+    ## 出力画像の大きさの指定
+    plt.figure(figsize=(5,5))
+    ## 目盛りの削除
+    plt.tick_params(labelbottom=False,
+                    labelleft=False,
+                    labelright=False,
+                    labeltop=False,
+                   length=0)
+    ## word cloudの表示
+    plt.imshow(wc)
+    plt.show()
+
+
+
 def main():
 
     menu = ["Youtubeでデータを取り直す", "直近ダウンロードしたファイルで表示する", "チャンネルの状況を確認する"]
@@ -109,9 +144,12 @@ def main():
         #st.write(len(video_stats))
         #sorted_vid = sorted(video)
         stats = []
+        #sorted_video = sorted(video_stats.items(), key=lambda item: pd.datetime(item[1]["publishedAt"], format="%Y%m"), reverse=True)
         for video in video_stats.items():
             #st.write(video)
             video_id = video[0]
+            published_at = video[1]["publishedAt"]
+            description = video[1]["description"]
             title = video[1]["title"]
             #tag = video[2]['tags'] #ToDoタグを取りたい
             #channeltitle = video[1]["channelTitle"]
@@ -120,19 +158,21 @@ def main():
             dislikecount = int(video[1]["dislikeCount"])
             commentcount = int(video[1]["commentCount"])
 
-            stats.append([title, viewcount,likecount,dislikecount,commentcount])
+            stats.append([published_at, title, description, viewcount,likecount,dislikecount,commentcount])
 
-        df = pd.DataFrame(stats, columns=["title", "viewcount", "likecount", "dislikecount", "commentcount"])
+        df = pd.DataFrame(stats, columns=["published_at", "title","description", "viewcount", "likecount", "dislikecount", "commentcount"])
+        df = df.sort_values('published_at').reset_index(drop=True)
         st.write(df)
         fig = plt.figure(figsize=(10,10))
         #ax1 = fig.add_subplot(111)
+        #plt.tick_params(labelsize=10)
         fig, ax1 = plt.subplots()
         plt.xticks(rotation=90)
         plt.tick_params(labelsize=7)
  
         # ax1とax2を関連させる
         ax2 = ax1.twinx()
-        
+        plt.tick_params(labelsize=7)
         # それぞれのaxesオブジェクトのlines属性にLine2Dオブジェクトを追加
         ax1.bar(df["title"], df["viewcount"], color=cm.Set1.colors[1], label="視聴回数")
         ax2.plot( df["title"], df["commentcount"] , color=cm.Set1.colors[0], label="コメント数")
@@ -142,9 +182,9 @@ def main():
         handler1, label1 = ax1.get_legend_handles_labels()
         handler2, label2 = ax2.get_legend_handles_labels()
         # 凡例をまとめて出力する
-        ax1.legend(handler1 + handler2, label1 + label2, loc=2, borderaxespad=0.)
+        ax1.legend(handler1 + handler2, label1 + label2, loc=2, borderaxespad=0., fontsize=7)
         
-        pageview_max = 3 * max(df["viewcount"])
+        pageview_max = 2 * max(df["viewcount"])
         register_max = 1.2 * max(df["commentcount"])
         ax1.set_ylim([0, pageview_max])
         ax2.set_ylim([0, register_max])
@@ -152,6 +192,16 @@ def main():
 
         
         st.pyplot()
+
+        #t = Tokenizer()
+        st.write("## 動画の下に記載している単語")
+        noun_list = []
+        for sentence in list(df['description']):
+            get_nouns(sentence, noun_list)
+
+        depict_word_cloud(noun_list)
+        st.pyplot()
+
 
     #st.dataframe(df_output)
     #df_output['viewCount'] = df_output['viewCount'].astype(int)
