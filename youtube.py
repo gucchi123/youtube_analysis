@@ -81,7 +81,8 @@ def depict_word_cloud(noun_list):
     ## 名詞リストの要素を空白区切りにする(word_cloudの仕様)
     noun_space = ' '.join(map(str, noun_list))
     ## word cloudの設定(フォントの設定)
-    wc = WordCloud(background_color="white", font_path=r"C:/WINDOWS/Fonts/msgothic.ttc", width=300,height=300)
+    #wc = WordCloud(background_color="white", font_path=r"C:/WINDOWS/Fonts/msgothic.ttc", width=300,height=300)
+    wc = WordCloud(background_color="white", font_path=r"./msgothic.ttc", width=300,height=300)
     wc.generate(noun_space)
     ## 出力画像の大きさの指定
     plt.figure(figsize=(5,5))
@@ -137,9 +138,9 @@ def main():
         #st.write(stats)
         channel_stats = stats["channel_statistics"]
         video_stats = stats["video_data"]
-        st.write('総視聴回数: {:,}'.format(int(channel_stats["viewCount"])))
-        st.write('チャンネル登録者数: {:,}'.format( int(channel_stats["subscriberCount"])))
-        st.write('ビデオの数: {:,}'.format(int(channel_stats["videoCount"])))
+        st.write('総視聴回数: **{:,}**'.format(int(channel_stats["viewCount"])))
+        st.write('チャンネル登録者数: **{:,}**'.format( int(channel_stats["subscriberCount"])))
+        st.write('ビデオの数: **{:,}**'.format(int(channel_stats["videoCount"])))
         
         #st.write(len(video_stats))
         #sorted_vid = sorted(video)
@@ -151,18 +152,24 @@ def main():
             published_at = video[1]["publishedAt"]
             description = video[1]["description"]
             title = video[1]["title"]
-            #tag = video[2]['tags'] #ToDoタグを取りたい
+            
             #channeltitle = video[1]["channelTitle"]
             viewcount = int(video[1]["viewCount"])
             likecount = int(video[1]["likeCount"])
             dislikecount = int(video[1]["dislikeCount"])
             commentcount = int(video[1]["commentCount"])
+            #st.write(video)
+            tag = video[1].get('tags')
+            relevanttopicids = video[1].get("relevantTopicIds")
 
-            stats.append([published_at, title, description, viewcount,likecount,dislikecount,commentcount])
+            stats.append([published_at, title, description, viewcount,likecount,dislikecount,commentcount,
+                            relevanttopicids, tag])
 
-        df = pd.DataFrame(stats, columns=["published_at", "title","description", "viewcount", "likecount", "dislikecount", "commentcount"])
+        df = pd.DataFrame(stats, columns=["published_at", "title","description", 
+                                            "viewcount", "likecount", "dislikecount", "commentcount",
+                                            "relevanttopicids", "tag"])
         df = df.sort_values('published_at').reset_index(drop=True)
-        st.write(df)
+        
         fig = plt.figure(figsize=(10,10))
         #ax1 = fig.add_subplot(111)
         #plt.tick_params(labelsize=10)
@@ -190,17 +197,33 @@ def main():
         ax2.set_ylim([0, register_max])
         #plt.setp( ax1[1].xaxis.get_majorticklabels(), rotation=70 )
 
-        
+        st.write("### 動画と再生回数、および、コメント数の上位順")
         st.pyplot()
 
         #t = Tokenizer()
-        st.write("## 動画の下に記載している単語")
-        noun_list = []
-        for sentence in list(df['description']):
-            get_nouns(sentence, noun_list)
+        if st.checkbox("元データを確認する"):
+            st.write(df.iloc[:, :])
 
-        depict_word_cloud(noun_list)
-        st.pyplot()
+
+        if st.checkbox("タイトル文言を見る"):
+            st.write("### タイトル単語")
+            noun_list = []
+            for sentence in list(df['title']):
+                get_nouns(sentence, noun_list)
+
+            plt.figure(figsize=(20,10))
+            depict_word_cloud(noun_list)
+
+            st.pyplot()
+
+        if st.checkbox("動画の説明に使われている文言を見る"):
+            st.write("### 動画の下に記載している単語")
+            noun_list = []
+            for sentence in list(df['description']):
+                get_nouns(sentence, noun_list)
+
+            depict_word_cloud(noun_list)
+            st.pyplot()
 
 
     #st.dataframe(df_output)
