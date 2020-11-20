@@ -101,9 +101,10 @@ def channel_status(file):
                                         "relevanttopicids", "tag", "categoryid"])
     df = df.sort_values('published_at').reset_index(drop=True)
     
+    df["viewcount"] = df["viewcount"].astype(int)
     st.write("### 動画と再生回数、および、コメント数の上位順(日付順)")
     values = st.slider(
-    '再生回数の最少と最大でビデオを選択',  df.loc[:, "viewcount"].min(), df.loc[:, "viewcount"].min(), (df.loc[:, "viewcount"].min(), df.loc[:, "viewcount"].max()))
+    '再生回数の最少と最大でビデオを選択',  int(df.loc[:, "viewcount"].min()), int(df.loc[:, "viewcount"].max()), ( int(df.loc[:, "viewcount"].min()), int(df.loc[:, "viewcount"].max())))
     st.write('#### 1本のビデオあたりの再生回数: {:,} 回 ~ {:,} 回'.format(values[0], values[1]))
 
 

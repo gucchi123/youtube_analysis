@@ -89,13 +89,11 @@ def main():
 
         df_output['viewCount'] = df_output['viewCount'].astype(int)
 
-        values = st.slider(
-            '再生回数の最少と最大でチェンネルを選択',  df_output.loc[:, "viewCount"].min(), df_output.loc[:, "viewCount"].min(), (df_output.loc[:, "viewCount"].min(), df_output.loc[:, "viewCount"].max()))
-        st.write('#### 再生回数: {:,} 回 ~ {:,} 回'.format(values[0], values[1]))
+        values = st.slider("上位何番目を除く", min_value=0, max_value=50, step=1)
 
 
 
-        df_output.groupby('channelTitle').sum().sort_values(by = 'viewCount', ascending = False).plot( kind='bar', y = 'viewCount', figsize = (25,10), fontsize = 20)
+        df_output.groupby('channelTitle').sum().sort_values(by = 'viewCount', ascending = False)[values:].plot( kind='bar', y = 'viewCount', figsize = (25,10), fontsize = 20)
         st.pyplot()
 
     elif choice == "自分のチャンネルの状況を確認":
