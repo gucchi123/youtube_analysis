@@ -1,7 +1,7 @@
 from youtube_statistics import YTstats
 
 API_KEY = 'AIzaSyBD2iQAO6EFpiVdcKmt0-L5xEi6GyV75K8'
-channel_id = "UCYp373JfGNTCu_M9AGhg7tA"
+channel_id = "UCkZLRWeJemZ5GXb6PbMx70w"
 
 #python_engineer_id = 'UCbXgNpp0jedKWcQiULLbDTA'
 #channel_id = python_engineer_id
